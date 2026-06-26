@@ -1,6 +1,6 @@
 ### Manipulating arrays
 import numpy as np
-
+import pandas as pd
 ### Data visualization
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -38,7 +38,65 @@ def print_stats(flat_samples):
         q = np.diff(percentiles)
         txt = "\mathrm{{{3}}} = {0:.3f}_{{-{1:.3f}}}^{{{2:.3f}}}"
         txt = txt.format(percentiles[1], q[0], q[1], labels[i])
+        print(percentiles)
         display(Math(txt))
+
+
+
+def save_stats(flat_samples, run_name=None, output_path=None):
+    """
+    Computes 16th, 50th, and 84th percentile values for the 4 variables,
+    prints them, and optionally saves stats to a .txt file and LaTeX
+    expressions to a single PNG.
+
+    Parameters
+    ----------
+    flat_samples : numpy.ndarray
+        Flattened MCMC chain flat_samples.
+    run_name : str, optional
+        Name used to label output files (e.g. "run_01" produces
+        "run_01_stats.txt" and "run_01_stats.png"). Requires output_path.
+    output_path : str or Path, optional
+        Directory where output files are saved. Requires run_name.
+    """
+    global ndim
+    labels = ["log(age/yr)", r"log(Z/Z$_{\odot}$)", "E(B-V)", "log(A)"]
+    latex_labels = [r"log(age/yr)", r"log(Z/Z_{\odot})", r"E(B-V)", r"log(A)"]
+
+    rows = {}
+    latex_strings = []
+
+    for i in range(ndim):
+        percentiles = np.percentile(flat_samples[:, i], [16, 50, 84])
+        q = np.diff(percentiles)
+        rows[labels[i]] = {"16th": percentiles[0], "50th": percentiles[1], "84th": percentiles[2]}
+
+        txt = r"\mathrm{{{3}}} = {0:.3f}_{{-{1:.3f}}}^{{+{2:.3f}}}"
+        txt = txt.format(percentiles[1], q[0], q[1], latex_labels[i])
+        latex_strings.append(txt)
+        display(Math(txt))
+
+    df = pd.DataFrame.from_dict(rows, orient="index")
+    df.index.name = "parameter"
+
+    if run_name is not None and output_path is not None:
+        base = f"{output_path}/{run_name}_stats"
+
+        # Save stats DataFrame as txt
+        df.to_csv(f"{base}.txt", sep="\t")
+
+        # Render all LaTeX expressions into a single PNG
+        fig, ax = plt.subplots(figsize=(6, 0.6 * ndim))
+        ax.axis("off")
+        for j, s in enumerate(latex_strings):
+            ax.text(0.5, 1 - (j + 0.5) / ndim, f"${s}$",
+                    ha="center", va="center", fontsize=14,
+                    transform=ax.transAxes)
+        fig.savefig(f"{base}.png", bbox_inches="tight", dpi=150)
+        plt.close(fig)
+
+    return df
+
 
 #########################
 

@@ -327,7 +327,7 @@ def get_model(theta, x, model_cube, ion_table, add_nebular = True):
     age_key, age = _nearest_age(logt)
     
     nearest_stellar_model = (10**ampl) * model_cube[met_key].data[age_key]
-    specwl = model_cube[met_key].data['WL'].byteswap().newbyteorder()
+    # specwl = model_cube[met_key].data['WL']
     
     if add_nebular == True:
         nebcont = nebular_continuum(x, theta, ion_table)

@@ -287,16 +287,12 @@ def run_sesamme(filename, runname, x, y, yerr, model_cube, ion_table, mask, add_
         backend = emcee.backends.HDFBackend(filename, name = runname)
         backend.reset(nwalkers, ndim)
         
-        sampler = emcee.EnsembleSampler(
-            nwalkers, ndim, log_posterior, backend = backend, args=(x, y, yerr, 
-                                                  model_cube, ion_table, mask, add_nebular)
-        )
+        sampler = emcee.EnsembleSampler(nwalkers, ndim, log_posterior, backend=backend,
+                                        args=(x, y, yerr, model_cube, ion_table, mask, add_nebular))
         
-        sampler.run_mcmc(initial_pos, nsteps, progress=True);
+        sampler.run_mcmc(initial_pos, nsteps, progress=True)
         
-        print(
-            "Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction))
-        )
+        print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
         
     else:
         print("\n Unknown response. Please use y / yes / Y / YES to begin or n / no / N / NO to change your mind.")
